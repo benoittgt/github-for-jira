@@ -5,7 +5,7 @@ import { getAxiosInstance } from "./axios";
 import { getJiraId } from "../util/id";
 import { AxiosInstance, AxiosResponse } from "axios";
 import Logger from "bunyan";
-import { JiraAssociation, JiraCommit, JiraIssue, JiraRemoteLink, JiraSubmitOptions } from "interfaces/jira";
+import { JiraAssociation, JiraCommit, JiraIssue, JiraRemoteLink, JiraSubmitOptions, JiraSubmitDeploymentsResponse } from "interfaces/jira";
 import { getLogger } from "config/logger";
 import { jiraIssueKeyParser } from "utils/jira-utils";
 import { uniq } from "lodash";
@@ -356,6 +356,17 @@ export const getJiraClient = async (
 				logger.info("Sending remoteLinks payload to jira.");
 				await instance.post("/rest/remotelinks/1.0/bulk", payload);
 			}
+		},
+		deploymentGating: {
+			get: (pipelineId: string, environmentId: string, deploymentSequenceNumber: string): Promise<AxiosResponse<JiraSubmitDeploymentsResponse>> =>
+				instance.get("/rest/deployments/0.1/pipelines/{pipelineId}/environments/{environmentId}/deployments/{deploymentSequenceNumber}/gating-status", {
+					params: {},
+					urlParams: {
+						pipelineId: pipelineId,
+						environmentId: environmentId,
+						deploymentSequenceNumber: deploymentSequenceNumber
+					}
+				})
 		}
 	};
 

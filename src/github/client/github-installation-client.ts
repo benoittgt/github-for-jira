@@ -26,7 +26,9 @@ import {
 	ActionsListRepoWorkflowRunsResponseEnhanced,
 	GetPullRequestParams,
 	PaginatedAxiosResponse,
-	ReposGetContentsResponse
+	ReposGetContentsResponse,
+	ReviewPendingWorkflowRunParams,
+	ReviewPendingWorkflowRunResponse
 } from "./github-client.types";
 import { isChangedFilesError } from "./github-client-errors";
 import { GITHUB_ACCEPT_HEADER } from "utils/get-github-client-config";
@@ -320,6 +322,18 @@ export class GitHubInstallationClient extends GitHubClient {
 		}
 	}
 
+	public async reviewPendingDeploymentsForWorkflowRun(owner: string, repo: string, run_id: string, body: ReviewPendingWorkflowRunParams): Promise<AxiosResponse<ReviewPendingWorkflowRunResponse[]>> {
+		return await this.post<ReviewPendingWorkflowRunResponse[]>(
+			`/repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments`,
+			{ body },
+			{},
+			{
+				owner,
+				repo,
+				run_id
+			});
+	}
+
 	/**
 	 * Use this config in a request to authenticate with the app token.
 	 */
@@ -373,6 +387,14 @@ export class GitHubInstallationClient extends GitHubClient {
 
 	private async patch<T>(url, body = {}, params = {}, urlParams = {}): Promise<AxiosResponse<T>> {
 		return this.axios.patch<T>(url, body, {
+			...await this.installationAuthenticationHeaders(),
+			params,
+			urlParams
+		});
+	}
+
+	private async post<T>(url, body = {}, params = {}, urlParams = {}): Promise<AxiosResponse<T>> {
+		return this.axios.post<T>(url, body, {
 			...await this.installationAuthenticationHeaders(),
 			params,
 			urlParams
